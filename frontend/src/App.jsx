@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthProvider';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import HeroCTA from './components/HeroCTA';
@@ -7,6 +8,8 @@ import FeaturesGrid from './components/FeaturesGrid';
 import TechStack from './components/TechStack';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
+import Register from './pages/Register';
 import NotFound from './pages/NotFound';
 
 function LandingPage() {
@@ -36,22 +39,24 @@ function DashboardPlaceholder() {
 
 function App() {
   return (
-    <div style={{ background: '#0B192C', minHeight: '100vh', color: '#ffffff' }}>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LandingPage />} />
-        <Route path="/register" element={<LandingPage />} />
+    <AuthProvider>
+      <div style={{ background: '#0B192C', minHeight: '100vh', color: '#ffffff' }}>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        {/* Protected Application Routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<DashboardPlaceholder />} />
-        </Route>
+          {/* Protected Application Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/dashboard" element={<DashboardPlaceholder />} />
+          </Route>
 
-        {/* Catch-all 404 Route */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </div>
+          {/* Catch-all 404 Route */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </div>
+    </AuthProvider>
   );
 }
 
