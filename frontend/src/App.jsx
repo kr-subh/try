@@ -1,11 +1,14 @@
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import HeroCTA from './components/HeroCTA';
 
 function App() {
   return (
     <div>
       <Navbar />
-      <Hero />
+      <Hero>
+        <HeroCTA />
+      </Hero>
     </div>
   );
 }
