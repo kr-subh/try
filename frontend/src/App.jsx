@@ -1,13 +1,17 @@
 import Navbar from './components/Navbar';
+import FeaturesGrid from './components/FeaturesGrid';
+import TechStack from './components/TechStack';
+import Footer from './components/Footer';
 
 function App() {
   return (
-    <div>
+    <div style={{ background: '#0B192C', minHeight: '100vh', color: '#ffffff' }}>
       <Navbar />
-      <main style={{ padding: '2rem', fontFamily: 'sans-serif', textAlign: 'center' }}>
-        <h1>xSTUDENT</h1>
-        <p>Student Management System</p>
+      <main>
+        <FeaturesGrid />
+        <TechStack />
       </main>
+      <Footer />
     </div>
   );
 }
