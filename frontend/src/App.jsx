@@ -12,6 +12,7 @@ import AppLayout from './components/AppLayout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import StudentList from './pages/StudentList';
+import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 
 function LandingPage() {
@@ -56,7 +57,7 @@ function App() {
             <Route path="/dashboard" element={<DashboardPlaceholder />} />
             <Route path="/students" element={<StudentList />} />
             <Route path="/students/new" element={<DashboardPlaceholder />} />
-            <Route path="/profile" element={<DashboardPlaceholder />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>
 
