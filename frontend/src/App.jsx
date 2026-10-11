@@ -10,6 +10,7 @@ import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import StudentList from './pages/StudentList';
 import NotFound from './pages/NotFound';
 
 function LandingPage() {
@@ -46,6 +47,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/students" element={<StudentList />} />
 
           {/* Protected Application Routes */}
           <Route element={<ProtectedRoute />}>
