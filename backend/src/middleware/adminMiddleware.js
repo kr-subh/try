@@ -1,4 +1,8 @@
-export const verifyAdmin = (req, res, next) => {
+import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
+import User from "../models/User.js";
+
+export const verifyAdmin = async (req, res, next) => {
   if (req.user && req.user.role) {
     if (req.user.role === "admin") {
       return next();
@@ -21,21 +25,39 @@ export const verifyAdmin = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   if (authHeader && authHeader.startsWith("Bearer ")) {
     const token = authHeader.split(" ")[1];
+    let decoded;
     try {
-      const payloadBase64 = token.split(".")[1];
-      if (payloadBase64) {
-        const decoded = JSON.parse(
-          Buffer.from(payloadBase64, "base64").toString()
-        );
-        if (decoded.role === "admin") {
-          req.user = decoded;
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(401).json({
+        message: "Invalid or expired token",
+      });
+    }
+
+    if (decoded.role === "admin") {
+      req.user = decoded;
+      return next();
+    }
+
+    if (decoded.role && decoded.role !== "admin") {
+      return res.status(403).json({
+        message: "Access denied. Admin only.",
+      });
+    }
+
+    if (decoded.id && mongoose.isValidObjectId(decoded.id)) {
+      try {
+        const user = await User.findById(decoded.id);
+        if (user && user.role === "admin") {
+          req.user = user;
           return next();
         }
-        return res.status(403).json({
-          message: "Access denied. Admin only.",
-        });
-      }
-    } catch (e) {}
+      } catch (e) {}
+    }
+
+    return res.status(403).json({
+      message: "Access denied. Admin only.",
+    });
   }
 
   return res.status(403).json({
