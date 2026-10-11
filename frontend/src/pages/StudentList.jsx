@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import './StudentList.css';
 
@@ -9,6 +9,11 @@ export default function StudentList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [totalStudents, setTotalStudents] = useState(0);
+
+  // Search and filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState('ALL');
+  const [selectedSemester, setSelectedSemester] = useState('ALL');
 
   useEffect(() => {
     let ignore = false;
@@ -83,6 +88,58 @@ export default function StudentList() {
       });
   };
 
+  // Derive courses and semesters dynamically from loaded data
+  const availableCourses = useMemo(() => {
+    const set = new Set();
+    students.forEach((s) => {
+      if (s.course && typeof s.course === 'string') {
+        set.add(s.course.trim());
+      }
+    });
+    return Array.from(set).sort();
+  }, [students]);
+
+  const availableSemesters = useMemo(() => {
+    const set = new Set();
+    students.forEach((s) => {
+      if (s.semester !== undefined && s.semester !== null && s.semester !== '') {
+        set.add(String(s.semester));
+      }
+    });
+    return Array.from(set).sort((a, b) => Number(a) - Number(b));
+  }, [students]);
+
+  // Compute filtered students based on search term, course, and semester
+  const filteredStudents = useMemo(() => {
+    return students.filter((student) => {
+      const term = searchTerm.trim().toLowerCase();
+      const matchesSearch =
+        !term ||
+        (student.fullName && student.fullName.toLowerCase().includes(term)) ||
+        (student.rollNo && String(student.rollNo).toLowerCase().includes(term)) ||
+        (student.email && student.email.toLowerCase().includes(term)) ||
+        (student.studentId && String(student.studentId).toLowerCase().includes(term));
+
+      const matchesCourse =
+        selectedCourse === 'ALL' ||
+        (student.course && student.course.trim().toLowerCase() === selectedCourse.toLowerCase());
+
+      const matchesSemester =
+        selectedSemester === 'ALL' ||
+        String(student.semester) === String(selectedSemester);
+
+      return matchesSearch && matchesCourse && matchesSemester;
+    });
+  }, [students, searchTerm, selectedCourse, selectedSemester]);
+
+  const hasActiveFilters = searchTerm !== '' || selectedCourse !== 'ALL' || selectedSemester !== 'ALL';
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setSelectedCourse('ALL');
+    setSelectedSemester('ALL');
+  };
+
   return (
     <div className="student-list-container">
       <div className="student-list-header">
@@ -96,6 +153,83 @@ export default function StudentList() {
           + Add New Student
         </Link>
       </div>
+
+      {/* Filter and Search Toolbar */}
+      {!loading && !error && students.length > 0 && (
+        <div className="filter-toolbar" aria-label="Student search and filter bar">
+          <div className="search-input-group">
+            <span className="search-icon" aria-hidden="true">&#128269;</span>
+            <input
+              type="text"
+              id="student-search-input"
+              className="filter-search-input"
+              placeholder="Search by name, roll number, email, or ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              aria-label="Search students by name, roll number, or email"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                className="btn-clear-search"
+                onClick={() => setSearchTerm('')}
+                aria-label="Clear search text"
+              >
+                &times;
+              </button>
+            )}
+          </div>
+
+          <div className="filter-select-group">
+            <label htmlFor="course-filter-select" className="filter-label">Course:</label>
+            <select
+              id="course-filter-select"
+              className="filter-select"
+              value={selectedCourse}
+              onChange={(e) => setSelectedCourse(e.target.value)}
+              aria-label="Filter by academic course"
+            >
+              <option value="ALL">All Courses</option>
+              {availableCourses.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {availableSemesters.length > 0 && (
+            <div className="filter-select-group">
+              <label htmlFor="semester-filter-select" className="filter-label">Semester:</label>
+              <select
+                id="semester-filter-select"
+                className="filter-select"
+                value={selectedSemester}
+                onChange={(e) => setSelectedSemester(e.target.value)}
+                aria-label="Filter by semester"
+              >
+                <option value="ALL">All Semesters</option>
+                {availableSemesters.map((s) => (
+                  <option key={s} value={s}>
+                    Semester {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {hasActiveFilters && (
+            <button
+              type="button"
+              className="btn-clear-all-filters"
+              onClick={handleClearFilters}
+              aria-label="Clear all applied filters"
+            >
+              Clear Filters
+            </button>
+          )}
+        </div>
+      )}
 
       {loading && (
         <div className="state-card state-loading" role="status">
@@ -123,10 +257,23 @@ export default function StudentList() {
         </div>
       )}
 
-      {!loading && !error && students.length > 0 && (
+      {!loading && !error && students.length > 0 && filteredStudents.length === 0 && (
+        <div className="state-card state-empty">
+          <h3>No Matching Students</h3>
+          <p>No student records matched your search or filter criteria.</p>
+          <button type="button" className="btn-retry" onClick={handleClearFilters}>
+            Clear All Filters
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && filteredStudents.length > 0 && (
         <div className="table-responsive-wrapper">
           <div className="table-meta-bar">
-            <span>Showing <strong>{students.length}</strong> of <strong>{totalStudents}</strong> students</span>
+            <span>
+              Showing <strong>{filteredStudents.length}</strong> of <strong>{students.length}</strong> students
+              {totalStudents > students.length && ` (total ${totalStudents} in directory)`}
+            </span>
           </div>
 
           <table className="student-table" aria-label="Student records list">
@@ -141,7 +288,7 @@ export default function StudentList() {
               </tr>
             </thead>
             <tbody>
-              {students.map((student) => (
+              {filteredStudents.map((student) => (
                 <tr key={student._id || student.studentId}>
                   <td className="cell-id">
                     <code>{student.studentId}</code>
