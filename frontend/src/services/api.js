@@ -1,0 +1,72 @@
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+/**
+ * Reusable native-fetch wrapper for API requests.
+ * Automatically attaches Authorization header if token exists in localStorage,
+ * handles JSON serialization/deserialization, and throws detailed errors on failure.
+ *
+ * @param {string} endpoint - API path relative to BASE_URL (e.g. '/students' or '/auth/login')
+ * @param {RequestInit} [options={}] - Standard fetch options
+ * @returns {Promise<any>} Parsed response data
+ */
+export async function apiFetch(endpoint, options = {}) {
+  const url = endpoint.startsWith('http')
+    ? endpoint
+    : `${BASE_URL.replace(/\/+$/, '')}/${endpoint.replace(/^\/+/, '')}`;
+
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {}),
+  };
+
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  if (token && !headers.Authorization) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const config = {
+    ...options,
+    headers,
+  };
+
+  if (config.body && typeof config.body === 'object' && !(config.body instanceof FormData)) {
+    config.body = JSON.stringify(config.body);
+  }
+
+  const response = await fetch(url, config);
+
+  let data;
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+  } else {
+    data = await response.text();
+  }
+
+  if (!response.ok) {
+    const errorMessage =
+      (data && typeof data === 'object' && (data.message || data.error)) ||
+      (typeof data === 'string' && data) ||
+      `Request failed with status ${response.status}`;
+
+    const error = new Error(errorMessage);
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+
+  return data;
+}
+
+export const api = {
+  get: (endpoint, options) => apiFetch(endpoint, { ...options, method: 'GET' }),
+  post: (endpoint, body, options) => apiFetch(endpoint, { ...options, method: 'POST', body }),
+  put: (endpoint, body, options) => apiFetch(endpoint, { ...options, method: 'PUT', body }),
+  delete: (endpoint, options) => apiFetch(endpoint, { ...options, method: 'DELETE' }),
+};
+
+export default api;
