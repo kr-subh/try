@@ -299,3 +299,77 @@
   background: rgba(239, 68, 68, 0.2);
   color: #ffffff;
 }
+
+/* Notification Banner */
+.notification-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  animation: slideDown 0.25s ease-out;
+}
+
+.notification-success {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+}
+
+.notification-error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.btn-close-notification {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.75;
+  padding: 0 0.25rem;
+}
+
+.btn-close-notification:hover {
+  opacity: 1;
+}
+
+.actions-cell-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.action-btn-delete {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn-delete:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #ffffff;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

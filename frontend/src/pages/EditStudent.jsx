@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import DeleteModal from '../components/DeleteModal';
 import './EditStudent.css';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -18,6 +19,8 @@ export default function EditStudent() {
 
   const [initialLoading, setInitialLoading] = useState(true);
   const [saveLoading, setSaveLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [notFound, setNotFound] = useState(false);
@@ -119,6 +122,36 @@ export default function EditStudent() {
       setErrorMessage(err.message || 'Error updating student record.');
     } finally {
       setSaveLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleteLoading(true);
+    setErrorMessage('');
+
+    try {
+      const url = `${BASE_URL.replace(/\/+$/, '')}/students/${id}`;
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers,
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || `Failed to delete student (Status ${res.status})`);
+      }
+
+      setShowDeleteModal(false);
+      navigate('/students');
+    } catch (err) {
+      setErrorMessage(err.message || 'Error deleting student record.');
+      setShowDeleteModal(false);
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -246,16 +279,45 @@ export default function EditStudent() {
             </div>
           </div>
 
-          <div className="form-actions">
-            <Link to="/students" className="btn-cancel">
-              Cancel
-            </Link>
-            <button type="submit" className="btn-submit" disabled={saveLoading}>
-              {saveLoading ? 'Saving Changes...' : 'Save Changes'}
+          <div className="form-actions" style={{ justifyContent: 'space-between' }}>
+            <button
+              type="button"
+              className="btn-danger-delete"
+              onClick={() => setShowDeleteModal(true)}
+              style={{
+                padding: '0.75rem 1.25rem',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#fca5a5',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              Delete Record
             </button>
+
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <Link to="/students" className="btn-cancel">
+                Cancel
+              </Link>
+              <button type="submit" className="btn-submit" disabled={saveLoading}>
+                {saveLoading ? 'Saving Changes...' : 'Save Changes'}
+              </button>
+            </div>
           </div>
         </form>
       </div>
+
+      <DeleteModal
+        isOpen={showDeleteModal}
+        title="Confirm Student Deletion"
+        message="Are you sure you want to delete this student record permanently?"
+        itemName={`${formData.fullName} (${formData.studentId || formData.rollNo})`}
+        loading={deleteLoading}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteModal(false)}
+      />
     </div>
   );
 }

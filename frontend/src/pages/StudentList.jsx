@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import DeleteModal from '../components/DeleteModal';
 import './StudentList.css';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -14,6 +15,11 @@ export default function StudentList() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('ALL');
   const [selectedSemester, setSelectedSemester] = useState('ALL');
+
+  // Delete modal & notification state
+  const [studentToDelete, setStudentToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     let ignore = false;
@@ -140,8 +146,84 @@ export default function StudentList() {
     setSelectedSemester('ALL');
   };
 
+  // Delete operations
+  const handleRequestDelete = (student) => {
+    setStudentToDelete(student);
+  };
+
+  const handleCancelDelete = () => {
+    if (!deleteLoading) {
+      setStudentToDelete(null);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!studentToDelete) return;
+
+    setDeleteLoading(true);
+    const targetId = studentToDelete._id || studentToDelete.studentId;
+    const targetName = studentToDelete.fullName;
+
+    try {
+      const url = `${BASE_URL.replace(/\/+$/, '')}/students/${targetId}`;
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers,
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || `Server returned error status ${res.status}`);
+      }
+
+      // Successfully removed
+      setStudents((prev) => prev.filter((s) => (s._id || s.studentId) !== targetId));
+      setTotalStudents((prev) => Math.max(0, prev - 1));
+      setStudentToDelete(null);
+      setNotification({
+        type: 'success',
+        message: `Student record for "${targetName}" was permanently deleted.`,
+      });
+    } catch (err) {
+      setNotification({
+        type: 'error',
+        message: `Failed to delete "${targetName}": ${err.message}`,
+      });
+      setStudentToDelete(null);
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   return (
     <div className="student-list-container">
+      {/* Toast Notification Banner */}
+      {notification && (
+        <div
+          className={`notification-banner notification-${notification.type}`}
+          role="alert"
+        >
+          <div className="notification-content">
+            <span className="notification-icon">
+              {notification.type === 'success' ? '✅' : '❌'}
+            </span>
+            <span>{notification.message}</span>
+          </div>
+          <button
+            type="button"
+            className="btn-close-notification"
+            onClick={() => setNotification(null)}
+            aria-label="Dismiss notification"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
       <div className="student-list-header">
         <div>
           <h1 className="student-list-title">Student Directory</h1>
@@ -300,9 +382,19 @@ export default function StudentList() {
                   </td>
                   <td className="cell-roll">{student.rollNo}</td>
                   <td className="cell-actions">
-                    <Link to={`/students/${student._id}/edit`} className="action-link edit-link">
-                      Edit
-                    </Link>
+                    <div className="actions-cell-group">
+                      <Link to={`/students/${student._id}/edit`} className="action-link edit-link">
+                        Edit
+                      </Link>
+                      <button
+                        type="button"
+                        className="action-btn-delete"
+                        onClick={() => handleRequestDelete(student)}
+                        aria-label={`Delete record for ${student.fullName}`}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -310,6 +402,17 @@ export default function StudentList() {
           </table>
         </div>
       )}
+
+      {/* Accessible Confirmation Modal */}
+      <DeleteModal
+        isOpen={Boolean(studentToDelete)}
+        title="Confirm Student Deletion"
+        message="Are you sure you want to delete this student record? This action will permanently remove the student from the database."
+        itemName={studentToDelete ? `${studentToDelete.fullName} (${studentToDelete.studentId || studentToDelete.rollNo})` : ''}
+        loading={deleteLoading}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   );
 }
