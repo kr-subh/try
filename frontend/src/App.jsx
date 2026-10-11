@@ -8,13 +8,15 @@ import FeaturesGrid from './components/FeaturesGrid';
 import TechStack from './components/TechStack';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
+import AppLayout from './components/AppLayout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import NotFound from './pages/NotFound';
 
 function LandingPage() {
   return (
-    <>
+    <div style={{ background: '#0B192C', minHeight: '100vh', color: '#ffffff' }}>
+      <Navbar />
       <main>
         <Hero>
           <HeroCTA />
@@ -24,38 +26,42 @@ function LandingPage() {
         <TechStack />
       </main>
       <Footer />
-    </>
+    </div>
   );
 }
 
 function DashboardPlaceholder() {
   return (
-    <main style={{ padding: '3rem 1.5rem', textAlign: 'center', background: '#0B192C', minHeight: 'calc(100vh - 70px)', color: '#ffffff' }}>
-      <h1>Dashboard</h1>
-      <p style={{ color: '#94a3b8' }}>Protected dashboard area</p>
-    </main>
+    <div>
+      <h2 style={{ margin: '0 0 1rem', color: '#f8fafc' }}>Dashboard Overview</h2>
+      <p style={{ color: '#94a3b8' }}>
+        Welcome to the student management system dashboard.
+      </p>
+    </div>
   );
 }
 
 function App() {
   return (
     <AuthProvider>
-      <div style={{ background: '#0B192C', minHeight: '100vh', color: '#ffffff' }}>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-          {/* Protected Application Routes */}
-          <Route element={<ProtectedRoute />}>
+        {/* Authenticated Application with Shared AppLayout */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<DashboardPlaceholder />} />
+            <Route path="/students" element={<DashboardPlaceholder />} />
+            <Route path="/students/new" element={<DashboardPlaceholder />} />
+            <Route path="/profile" element={<DashboardPlaceholder />} />
           </Route>
+        </Route>
 
-          {/* Catch-all 404 Route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
+        {/* Catch-all 404 Route */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
     </AuthProvider>
   );
 }
