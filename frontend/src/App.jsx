@@ -14,6 +14,7 @@ import Register from './pages/Register';
 import StudentList from './pages/StudentList';
 import AddStudent from './pages/AddStudent';
 import EditStudent from './pages/EditStudent';
+import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import NotFound from './pages/NotFound';
 
@@ -34,16 +35,7 @@ function LandingPage() {
   );
 }
 
-function DashboardPlaceholder() {
-  return (
-    <div>
-      <h2 style={{ margin: '0 0 1rem', color: '#f8fafc' }}>Dashboard Overview</h2>
-      <p style={{ color: '#94a3b8' }}>
-        Welcome to the student management system dashboard.
-      </p>
-    </div>
-  );
-}
+
 
 function App() {
   return (
@@ -56,7 +48,7 @@ function App() {
         {/* Authenticated Application with Shared AppLayout */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            <Route path="/dashboard" element={<DashboardPlaceholder />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/students" element={<StudentList />} />
             <Route path="/students/new" element={<AddStudent />} />
             <Route path="/students/:id/edit" element={<EditStudent />} />
