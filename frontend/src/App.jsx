@@ -1,13 +1,11 @@
 import Navbar from './components/Navbar';
+import Hero from './components/Hero';
 
 function App() {
   return (
     <div>
       <Navbar />
-      <main style={{ padding: '2rem', fontFamily: 'sans-serif', textAlign: 'center' }}>
-        <h1>xSTUDENT</h1>
-        <p>Student Management System</p>
-      </main>
+      <Hero />
     </div>
   );
 }

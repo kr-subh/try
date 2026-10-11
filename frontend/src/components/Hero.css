@@ -1,0 +1,104 @@
+.hero-section {
+  background: radial-gradient(120% 80% at 50% 0%, #0F2744 0%, #0B192C 70%, #070F1E 100%);
+  color: #ffffff;
+  padding: 5rem 1.5rem 4rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.hero-container {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Translucent Pill Badge */
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 1rem;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 0 16px rgba(56, 189, 248, 0.15);
+  border-radius: 9999px;
+  margin-bottom: 2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #bae6fd;
+  letter-spacing: 0.02em;
+}
+
+.hero-badge-icon {
+  color: #38bdf8;
+  animation: pulse 2.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* Two-Tone Headline */
+.hero-title {
+  font-size: 3.25rem;
+  line-height: 1.15;
+  font-weight: 800;
+  margin: 0 0 1.5rem;
+  letter-spacing: -0.03em;
+  color: #f8fafc;
+}
+
+.hero-title-highlight {
+  display: inline-block;
+  background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Descriptive Lead Text */
+.hero-description {
+  font-size: 1.2rem;
+  line-height: 1.65;
+  color: #94a3b8;
+  max-width: 760px;
+  margin: 0 auto 2.25rem;
+  font-weight: 400;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 3.5rem 1rem 3rem;
+  }
+
+  .hero-title {
+    font-size: 2.25rem;
+  }
+
+  .hero-description {
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 1.85rem;
+  }
+
+  .hero-badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+  }
+}
