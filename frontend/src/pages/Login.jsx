@@ -1,24 +1,49 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { validateAuthForm } from '../utils/validation';
 import './Auth.css';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const { login, loading } = useAuth();
   const navigate = useNavigate();
 
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    if (fieldErrors.email) {
+      setFieldErrors((prev) => ({ ...prev, email: '' }));
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    if (fieldErrors.password) {
+      setFieldErrors((prev) => ({ ...prev, password: '' }));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
 
-    if (!email.trim() || !password) {
-      setErrorMessage('Please enter both email and password.');
+    const { isValid, errors } = validateAuthForm({
+      email,
+      password,
+      isRegister: false,
+    });
+
+    if (!isValid) {
+      setFieldErrors(errors);
+      setErrorMessage('Please provide valid login credentials.');
       return;
     }
+
+    setFieldErrors({});
 
     try {
       await login(email.trim(), password);
@@ -58,13 +83,20 @@ export default function Login() {
               <input
                 id="login-email"
                 type="email"
-                className="auth-input"
+                className={`auth-input ${fieldErrors.email ? 'input-invalid' : ''}`}
                 placeholder="name@college.edu"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleEmailChange}
                 autoComplete="email"
+                aria-invalid={Boolean(fieldErrors.email)}
+                aria-describedby={fieldErrors.email ? 'login-email-error' : undefined}
                 required
               />
+              {fieldErrors.email && (
+                <span id="login-email-error" className="field-error" role="alert">
+                  {fieldErrors.email}
+                </span>
+              )}
             </div>
 
             <div className="auth-field">
@@ -73,11 +105,13 @@ export default function Login() {
                 <input
                   id="login-password"
                   type={showPassword ? 'text' : 'password'}
-                  className="auth-input"
+                  className={`auth-input ${fieldErrors.password ? 'input-invalid' : ''}`}
                   placeholder="Enter your password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handlePasswordChange}
                   autoComplete="current-password"
+                  aria-invalid={Boolean(fieldErrors.password)}
+                  aria-describedby={fieldErrors.password ? 'login-password-error' : undefined}
                   required
                 />
                 <button
@@ -89,6 +123,11 @@ export default function Login() {
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
+              {fieldErrors.password && (
+                <span id="login-password-error" className="field-error" role="alert">
+                  {fieldErrors.password}
+                </span>
+              )}
             </div>
 
             <button type="submit" className="auth-btn-submit" disabled={loading}>

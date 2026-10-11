@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { validateStudentForm } from '../utils/validation';
 import './AddStudent.css';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -13,6 +14,7 @@ export default function AddStudent() {
     rollNo: '',
   });
 
+  const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -21,6 +23,15 @@ export default function AddStudent() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear specific field error as user types
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[name];
+        return next;
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -28,17 +39,15 @@ export default function AddStudent() {
     setErrorMessage('');
     setSuccessMessage('');
 
-    const { studentId, fullName, email, course, rollNo } = formData;
-    if (!studentId.trim() || !fullName.trim() || !email.trim() || !course.trim() || !rollNo.trim()) {
-      setErrorMessage('Please fill in all required fields.');
+    // Standardized client-side validation
+    const { isValid, errors } = validateStudentForm(formData);
+    if (!isValid) {
+      setFieldErrors(errors);
+      setErrorMessage('Please correct the validation errors highlighted below.');
       return;
     }
 
-    if (fullName.trim().length < 2) {
-      setErrorMessage('Full name must be at least 2 characters long.');
-      return;
-    }
-
+    setFieldErrors({});
     setLoading(true);
 
     try {
@@ -53,16 +62,17 @@ export default function AddStudent() {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          studentId: studentId.trim(),
-          fullName: fullName.trim(),
-          email: email.trim().toLowerCase(),
-          course: course.trim(),
-          rollNo: rollNo.trim(),
+          studentId: formData.studentId.trim(),
+          fullName: formData.fullName.trim(),
+          email: formData.email.trim().toLowerCase(),
+          course: formData.course.trim(),
+          rollNo: formData.rollNo.trim(),
         }),
       });
 
       const data = await res.json().catch(() => ({}));
 
+      // Server remains authoritative for duplicate checks and validation
       if (!res.ok) {
         if (data.message && data.message.includes('E11000')) {
           throw new Error('A student with this Student ID, Email, or Roll Number already exists.');
@@ -116,12 +126,19 @@ export default function AddStudent() {
                 id="studentId"
                 name="studentId"
                 type="text"
-                className="form-input"
+                className={`form-input ${fieldErrors.studentId ? 'input-invalid' : ''}`}
                 placeholder="e.g. STU-1001"
                 value={formData.studentId}
                 onChange={handleChange}
+                aria-invalid={Boolean(fieldErrors.studentId)}
+                aria-describedby={fieldErrors.studentId ? 'studentId-error' : undefined}
                 required
               />
+              {fieldErrors.studentId && (
+                <span id="studentId-error" className="field-error" role="alert">
+                  {fieldErrors.studentId}
+                </span>
+              )}
             </div>
 
             <div className="form-group">
@@ -132,12 +149,19 @@ export default function AddStudent() {
                 id="rollNo"
                 name="rollNo"
                 type="text"
-                className="form-input"
+                className={`form-input ${fieldErrors.rollNo ? 'input-invalid' : ''}`}
                 placeholder="e.g. CS-2024-042"
                 value={formData.rollNo}
                 onChange={handleChange}
+                aria-invalid={Boolean(fieldErrors.rollNo)}
+                aria-describedby={fieldErrors.rollNo ? 'rollNo-error' : undefined}
                 required
               />
+              {fieldErrors.rollNo && (
+                <span id="rollNo-error" className="field-error" role="alert">
+                  {fieldErrors.rollNo}
+                </span>
+              )}
             </div>
 
             <div className="form-group full-width">
@@ -148,12 +172,19 @@ export default function AddStudent() {
                 id="fullName"
                 name="fullName"
                 type="text"
-                className="form-input"
+                className={`form-input ${fieldErrors.fullName ? 'input-invalid' : ''}`}
                 placeholder="e.g. Aarav Sharma"
                 value={formData.fullName}
                 onChange={handleChange}
+                aria-invalid={Boolean(fieldErrors.fullName)}
+                aria-describedby={fieldErrors.fullName ? 'fullName-error' : undefined}
                 required
               />
+              {fieldErrors.fullName && (
+                <span id="fullName-error" className="field-error" role="alert">
+                  {fieldErrors.fullName}
+                </span>
+              )}
             </div>
 
             <div className="form-group">
@@ -164,12 +195,19 @@ export default function AddStudent() {
                 id="email"
                 name="email"
                 type="email"
-                className="form-input"
+                className={`form-input ${fieldErrors.email ? 'input-invalid' : ''}`}
                 placeholder="aarav@college.edu"
                 value={formData.email}
                 onChange={handleChange}
+                aria-invalid={Boolean(fieldErrors.email)}
+                aria-describedby={fieldErrors.email ? 'email-error' : undefined}
                 required
               />
+              {fieldErrors.email && (
+                <span id="email-error" className="field-error" role="alert">
+                  {fieldErrors.email}
+                </span>
+              )}
             </div>
 
             <div className="form-group">
@@ -180,12 +218,19 @@ export default function AddStudent() {
                 id="course"
                 name="course"
                 type="text"
-                className="form-input"
+                className={`form-input ${fieldErrors.course ? 'input-invalid' : ''}`}
                 placeholder="e.g. B.Tech Computer Science"
                 value={formData.course}
                 onChange={handleChange}
+                aria-invalid={Boolean(fieldErrors.course)}
+                aria-describedby={fieldErrors.course ? 'course-error' : undefined}
                 required
               />
+              {fieldErrors.course && (
+                <span id="course-error" className="field-error" role="alert">
+                  {fieldErrors.course}
+                </span>
+              )}
             </div>
           </div>
 

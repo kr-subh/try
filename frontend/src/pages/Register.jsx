@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { validateAuthForm } from '../utils/validation';
 import './Auth.css';
 
 export default function Register() {
@@ -8,30 +9,43 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const { register, loading } = useAuth();
   const navigate = useNavigate();
+
+  const handleFieldChange = (field, setter) => (e) => {
+    setter(e.target.value);
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
 
-    if (!name.trim() || !email.trim() || !password || !confirmPassword) {
-      setErrorMessage('Please fill in all required fields.');
+    const { isValid, errors } = validateAuthForm({
+      name,
+      email,
+      password,
+      confirmPassword,
+      isRegister: true,
+    });
+
+    if (!isValid) {
+      setFieldErrors(errors);
+      setErrorMessage('Please correct the validation errors highlighted below.');
       return;
     }
 
-    if (password.length < 6) {
-      setErrorMessage('Password must be at least 6 characters long.');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setErrorMessage('Passwords do not match.');
-      return;
-    }
+    setFieldErrors({});
 
     try {
       await register(name.trim(), email.trim(), password);
@@ -80,13 +94,20 @@ export default function Register() {
               <input
                 id="reg-name"
                 type="text"
-                className="auth-input"
+                className={`auth-input ${fieldErrors.name ? 'input-invalid' : ''}`}
                 placeholder="Riya Sharma"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={handleFieldChange('name', setName)}
                 autoComplete="name"
+                aria-invalid={Boolean(fieldErrors.name)}
+                aria-describedby={fieldErrors.name ? 'reg-name-error' : undefined}
                 required
               />
+              {fieldErrors.name && (
+                <span id="reg-name-error" className="field-error" role="alert">
+                  {fieldErrors.name}
+                </span>
+              )}
             </div>
 
             <div className="auth-field">
@@ -94,13 +115,20 @@ export default function Register() {
               <input
                 id="reg-email"
                 type="email"
-                className="auth-input"
+                className={`auth-input ${fieldErrors.email ? 'input-invalid' : ''}`}
                 placeholder="riya@college.edu"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={handleFieldChange('email', setEmail)}
                 autoComplete="email"
+                aria-invalid={Boolean(fieldErrors.email)}
+                aria-describedby={fieldErrors.email ? 'reg-email-error' : undefined}
                 required
               />
+              {fieldErrors.email && (
+                <span id="reg-email-error" className="field-error" role="alert">
+                  {fieldErrors.email}
+                </span>
+              )}
             </div>
 
             <div className="auth-field">
@@ -108,13 +136,20 @@ export default function Register() {
               <input
                 id="reg-password"
                 type="password"
-                className="auth-input"
+                className={`auth-input ${fieldErrors.password ? 'input-invalid' : ''}`}
                 placeholder="Create a strong password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handleFieldChange('password', setPassword)}
                 autoComplete="new-password"
+                aria-invalid={Boolean(fieldErrors.password)}
+                aria-describedby={fieldErrors.password ? 'reg-password-error' : undefined}
                 required
               />
+              {fieldErrors.password && (
+                <span id="reg-password-error" className="field-error" role="alert">
+                  {fieldErrors.password}
+                </span>
+              )}
             </div>
 
             <div className="auth-field">
@@ -122,13 +157,20 @@ export default function Register() {
               <input
                 id="reg-confirm"
                 type="password"
-                className="auth-input"
+                className={`auth-input ${fieldErrors.confirmPassword ? 'input-invalid' : ''}`}
                 placeholder="Re-enter your password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={handleFieldChange('confirmPassword', setConfirmPassword)}
                 autoComplete="new-password"
+                aria-invalid={Boolean(fieldErrors.confirmPassword)}
+                aria-describedby={fieldErrors.confirmPassword ? 'reg-confirm-error' : undefined}
                 required
               />
+              {fieldErrors.confirmPassword && (
+                <span id="reg-confirm-error" className="field-error" role="alert">
+                  {fieldErrors.confirmPassword}
+                </span>
+              )}
             </div>
 
             <button type="submit" className="auth-btn-submit" disabled={loading}>
